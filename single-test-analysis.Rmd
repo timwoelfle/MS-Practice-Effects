@@ -1,0 +1,375 @@
+---
+title: "Floodlight practice effects"
+author: "Tim Woelfle"
+date: "01/03/2021"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+params:
+  test_code: "ips"
+  test_metric_code: "correct_responses"
+  unit: 'SDMT: Correct Responses'
+  unit_n: patient
+  unit_time: repetition
+  min_repetitions: 5
+  min_weeks: 5
+  predictor: repetition
+  xlab: Repetitions
+  bounded.growth.confidence.interval: no
+  up_to_date: '2021-02-10'
+---
+
+```{r, warning=FALSE, message=FALSE}
+library(data.table) # fread
+library(parsedate) # parse_date
+library(dplyr) # group_by
+library(tibble) # deframe
+library(lme4) # lmer
+library(mgcv) # gamm
+library(quantreg) # rq
+library(patchwork) # plot_layout
+library(gridExtra) # grid.arrange
+library(ggpubr) # ggscatter
+library(ggtext) # geom_text
+library(sjPlot) # plot_model
+
+# Download from: https://dataset.floodlightopen.com/public-blobs-prod/complete_dataset.csv
+data = fread("complete_dataset.csv", data.table=F)
+
+# Prepare dataset
+data = data[data$testCode == params$test_code & !data$participantIsControl,]
+data$time = parse_date(data$testStartedAt)
+data = data[data$time <= as.POSIXct(params$up_to_date, tz="UTC"),] # only analyse data up to (excluding) params$up_to_date
+data = data[!duplicated(data),] # sometimes contains true duplicates for some reason (even with the same testResultMetricId)
+
+# For "Finger Pinching" hand_used has to be determined
+if (params$test_code == "pinching") {
+  library(tidyr) # pivot_wider
+  # just one means either "hand" or "successful_pinches" values are missing, remove those
+  table(table(data$time))
+  data = data[!data$time %in% names(which(table(data$time)==1)), ]
+  data = as.data.frame(pivot_wider(data, id_cols=c("floodlightOpenId", "participantIsControl", "participantSex", "participantBirthYear", "time"), names_from="testMetricCode", values_from="testResultMetricValue"))
+} else {
+  data = data[data$testMetricCode == params$test_metric_code,]
+  data$hand_used = NA
+  data = data[c("floodlightOpenId", "participantIsControl", "participantSex", "participantBirthYear", "time", "testResultMetricValue", "hand_used")]
+}
+
+colnames(data) = c("id", "control", "sex", "birthyear", "time", "value", "hand_used")
+data$age = year(data$time)-data$birthyear # Estimate age
+data = data[order(as.character(data$id)),]
+
+# 0 result values are discarded
+data = data[!is.na(data$value) & data$value != 0,]
+
+# Consider those supposedly younger than 18 (minimum study age) and older than 90 as NA
+data$age[data$age < 18 | data$age > 90] = NA
+
+data$id_original = data$id
+data$id = paste0(data$id, "_hand", data$hand_used)
+
+data$day = as.IDate(data$time)
+```
+
+```{r}
+round = function(x, digits=0) sprintf(paste0("%.", digits, "f"), x)
+
+no_x = theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+no_y = theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+linecolor = "#c71138"
+```
+
+### Participant selection
+
+```{r}
+# At least x weeks & repetitions
+for (id in unique(data$id)) {
+  subset = data$id == id
+  n = sum(subset)
+  data[subset, "repetition"] = (1:n)-1
+  data[subset, "weeksSinceFirst"] = as.numeric(difftime(data[subset, "time"], data[subset, "time"][1], unit="weeks"))
+}
+
+n_orig = nrow(data)
+n_patients_orig = length(unique(data$id_original))
+n_hands_orig = length(unique(data$id))
+
+participation_duration = data %>% group_by(id) %>% summarise(weeks=last(weeksSinceFirst), repetitions=last(repetition), .groups="keep")
+```
+
+Among the total n=`r nrow(participation_duration)` patients with n=`r nrow(data)` repetitions, the median length of participation is `r round(median(participation_duration$weeks),1)` weeks (IQR `r round(quantile(participation_duration$weeks, 0.25),1)`-`r round(quantile(participation_duration$weeks, 0.75),1)`, range `r round(min(participation_duration$weeks),1)`-`r round(max(participation_duration$weeks),1)`) and the median number of repetitions is `r median(participation_duration$repetitions+1)` (IQR `r quantile(participation_duration$repetitions+1, 0.25)`-`r quantile(participation_duration$repetitions+1, 0.75)`, range `r min(participation_duration$repetitions+1)`-`r max(participation_duration$repetitions+1)`).
+
+```{r}
+data = data[data$id %in% participation_duration$id[participation_duration$weeks >= params$min_weeks & participation_duration$repetitions+1 >= params$min_repetitions],]
+
+for (id in unique(data$id)) {
+  subset = data$id == id
+  n = sum(subset)
+  data[subset, "daysSinceLast"] = as.numeric(difftime(data[subset, "time"], c(data[subset, "time"][1], data[subset, "time"][1:(n-1)]), unit="days"))
+}
+
+participation_duration = data %>% group_by(id) %>% summarise(sex=first(sex), mean_age=mean(age), weeks=last(weeksSinceFirst), repetitions=last(repetition), median_intertest_interval=median(daysSinceLast), IQR_intertest_interval=IQR(daysSinceLast), .groups="keep")
+
+data$predictor = data[,params$predictor]
+```
+
+Inclusion criteria: participation for at least `r params$min_weeks` weeks and at least `r params$min_repetitions` repetitions performed per test, leading to the analysis of n=`r length(unique(data$id_original))` / `r n_patients_orig` patients `r if (params$unit_n == "hand") paste0(", ", length(unique(data$id)), " / ", n_hands_orig, " hands ")` and n=`r nrow(data)` / `r n_orig` tests. Among those, the median length of participation is `r round(median(participation_duration$weeks),1)` weeks (IQR `r round(quantile(participation_duration$weeks, 0.25),1)`-`r round(quantile(participation_duration$weeks, 0.75),1)`, range `r round(min(participation_duration$weeks),1)`-`r round(max(participation_duration$weeks),1)`) and the median number of repetitions is `r median(participation_duration$repetitions+1)` (IQR `r quantile(participation_duration$repetitions+1, 0.25)`-`r quantile(participation_duration$repetitions+1, 0.75)`, range `r min(participation_duration$repetitions+1)`-`r max(participation_duration$repetitions+1)`).
+
+```{r}
+t(data.frame(
+  n_patients = paste0(length(unique(data$id_original)), " / ", n_patients_orig, " (", round(length(unique(data$id_original))/n_patients_orig*100,1), "%)"),
+  n_hands = paste0(length(unique(data$id)), " / ", n_hands_orig, " (", round(length(unique(data$id))/n_hands_orig*100,1), "%)"),
+  n_tests = paste0(nrow(data), " / ", n_orig, " (", round(nrow(data)/n_orig*100,1), "%)"),
+  percent_female = paste0(round(prop.table(table(participation_duration$sex == "female"))[[2]]*100, 1)),
+  age = paste0(round(median(participation_duration$mean_age,na.rm=T),1), " (", round(quantile(participation_duration$mean_age, 0.25, na.rm=T),1), "-", round(quantile(participation_duration$mean_age, 0.75, na.rm=T),1), ", range ", round(min(participation_duration$mean_age, na.rm=T),1), "-", round(max(participation_duration$mean_age, na.rm=T),1), ")"),
+  repetitions = paste0(median(participation_duration$repetitions)+1, " repetitions (IQR ", quantile(participation_duration$repetitions+1, 0.25), "-", quantile(participation_duration$repetitions+1, 0.75), ", range ", min(participation_duration$repetitions+1), "-", max(participation_duration$repetitions+1), ")"),
+  median_intertest_interval = paste0(round(median(participation_duration$median_intertest_interval),1), " days (IQR ", round(quantile(participation_duration$median_intertest_interval, 0.25),1), "-", round(quantile(participation_duration$median_intertest_interval, 0.75),1), ", range ", round(min(participation_duration$median_intertest_interval),1), "-", round(max(participation_duration$median_intertest_interval),1), ")"),
+  IQR_intertest_interval = paste0(round(median(participation_duration$IQR_intertest_interval),1), " days (IQR ", round(quantile(participation_duration$IQR_intertest_interval, 0.25),1), "-", round(quantile(participation_duration$IQR_intertest_interval, 0.75),1), ", range ", round(min(participation_duration$IQR_intertest_interval),1), "-", round(max(participation_duration$IQR_intertest_interval),1), ")"),
+  weeks = paste0(round(median(participation_duration$weeks),1), " weeks (IQR ", round(quantile(participation_duration$weeks, 0.25),1), "-", round(quantile(participation_duration$weeks, 0.75),1), ", range ", round(min(participation_duration$weeks),1), "-", round(max(participation_duration$weeks),1), ")")
+))
+```
+
+### Summary level analysis
+
+#### Difference test
+
+```{r}
+df = as.data.frame(data %>% group_by(id) %>% summarise(first=first(value), last=last(value), mean=mean(value), weeksSinceFirst=max(weeksSinceFirst), repetition=n(), first_age=first(age), last_age=last(age), mean_age=mean(age), .groups="keep") %>% mutate(diff=last-first))
+
+df$predictor = df[, params$predictor]
+
+test = t.test(df$last, df$first, paired=T)
+test
+```
+
+```{r, fig.width=9, fig.height=3}
+mod0 = lm(diff ~ I(mean_age/10) + I(first/10), df)
+summ0 = summary(mod0)
+summ0
+
+mod = lm(diff ~ I(mean_age/10) + I(first/10) + log10(predictor), df)
+confint(mod)
+summ = summary(mod)
+summ
+
+# additional variance explained by predictor
+#print(summ$r.squared - summ0$r.squared)
+
+print(paste0("Average observed improvement over baseline: ", round(test$estimate/mean(df$first)*100, 1), " (", round(test$conf[1]/mean(df$first)*100, 1), "-", round(test$conf[2]/mean(df$first)*100, 1), ")"))
+
+lab.y = 1.1*mean(df$last)
+
+p1 = ggbarplot(data.frame(Timepoint=rep(c("First","Mean","Last"),each=nrow(df)), value=c(df$first,df$mean,df$last)), "Timepoint", "value", add="mean_se", label=T, lab.nb.digits=1, lab.vjust=1.9, ylab=params$unit) + xlab("Score") #+ stat_compare_means(comparisons = list(c("First","Last")), paired=T, method="t.test", label.y=lab.y) + scale_y_continuous(expand=expansion(mult=c(0,0.1)))
+
+p2 = plot_model(summ, show.values=T, vline.color = "grey", show.intercept=T, colors=linecolor, title=paste0("Difference from First to Last Score, R²=", round(summ$r.squared, 2)), axis.labels=rev(c("Intercept", "Age (per 10 years)", "First score (per 10)", paste0(params$xlab, " (log 10)"))), value.offset=0.3, show.p=F) + ylab("β estimates")
+
+(p1 + p2) + plot_layout(widths=c(2,5)) & theme_pubr(base_family="Serif")
+```
+
+#### Confounders
+
+```{r, fig.width=12.5, fig.height=12.5}
+p_age_first = ggscatter(df, "mean_age", "first", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + xlab("Mean age") + ylab("First score") + theme_pubr(base_family="Serif")
+
+p_age_pred = ggscatter(df, "mean_age", "predictor", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + scale_y_log10() + xlab("Mean age") + ylab(paste0(params$xlab, " (log10)")) + theme_pubr(base_family="Serif")
+
+p_age_last = ggscatter(df, "mean_age", "last", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + xlab("Mean age") + ylab("Last score") + theme_pubr(base_family="Serif")
+
+p_age_diff = ggscatter(df, "mean_age", "diff", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + xlab("Mean age") + ylab("Difference first to last score") + theme_pubr(base_family="Serif")
+
+p_first_pred = ggscatter(df, "first", "predictor",  add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + scale_y_log10() + xlab("First score") + ylab(paste0(params$xlab, " (log10)")) + theme_pubr(base_family="Serif")
+
+p_first_last = ggscatter(df, "first", "last", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + xlab("First score") + ylab("Last score") + theme_pubr(base_family="Serif") #+ geom_abline(intercept=0,slope=1)
+
+p_first_diff = ggscatter(df, "first", "diff", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + xlab("First score") + ylab("Difference first to last score") + theme_pubr(base_family="Serif") #+ geom_abline(intercept=0,slope=1)
+
+p_pred_last = ggscatter(df, "predictor", "last", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + scale_x_log10(expand = expansion(mult = c(.05, .15))) + xlab(paste0(params$xlab, " (log10)")) + ylab("Last score") + theme_pubr(base_family="Serif")
+
+p_pred_diff = ggscatter(df, "predictor", "diff", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + scale_x_log10(expand = expansion(mult = c(.05, .15))) + xlab(paste0(params$xlab, " (log10)")) + ylab("Difference first to last score") + theme_pubr(base_family="Serif")
+
+p_last_diff = ggscatter(df, "last", "diff", add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + xlab("Last score") + ylab("Difference first to last score") + theme_pubr(base_family="Serif") #+ geom_abline(intercept=0,slope=1)
+
+p_last_pred = ggscatter(df, "last", "predictor",  add="reg.line", alpha=0.2, cor.coef=T, cor.coeff.args=list(color=linecolor), conf.int=T, add.params=list(color=linecolor)) + scale_y_log10() + xlab("Last score") + ylab(paste0(params$xlab, " (log10)")) + theme_pubr(base_family="Serif")
+
+
+p_age = gghistogram(df, "mean_age", bins=15) + xlab(NULL) + theme_pubr(base_family="Serif")
+p_first = gghistogram(df, "first", bins=15) + xlab(NULL) + theme_pubr(base_family="Serif")
+p_last = gghistogram(df, "last", bins=15) + xlab(NULL) + theme_pubr(base_family="Serif")
+p_pred = gghistogram(df, "predictor", bins=15) + scale_x_log10() + xlab(NULL) + theme_pubr(base_family="Serif")
+p_diff = gghistogram(df, "diff", bins=15) + xlab("Difference first to last") + theme_pubr(base_family="Serif")
+
+#(((p1+xlab(NULL)) + (p2+xlab(NULL)+ylab(NULL))) / ((p3+xlab(NULL)) + (p4+xlab(NULL)+ylab(NULL))) / ((p5) | (p6+ylab(NULL)))) & theme_pubr(base_family="Serif")
+
+#(p_age_first | p_first) / (p_age_last | p_first_last | p_last) / (p_age_pred | p_first_pred | p_last_pred | p_pred) / (p_age_diff | p_first_diff | p_last_diff | p_pred_diff)
+
+m <- matrix(NA, 5, 5)
+m[lower.tri(m, diag = T)] <- 1:15
+grid.arrange(grobs=list(
+  p_age, p_age_first+xlab(NULL), p_age_pred+xlab(NULL), p_age_last+xlab(NULL), p_age_diff,
+  p_first, p_first_pred+xlab(NULL)+ylab(""), p_first_last+xlab(NULL)+ylab(""), p_first_diff+ylab(""),
+  p_pred, p_pred_last+xlab(NULL)+ylab(""), p_pred_diff+ylab(""),
+  p_last, p_last_diff+ylab(""), 
+  p_diff
+), layout_matrix=m, heights=c(1,1,1,1,1.1))
+
+
+#GGally::ggpairs(df[c("mean_age", "first", "last", "predictor", "diff")])
+#pairs(df[c("mean_age", "first", "last", "predictor", "diff")], upper.panel=NULL)
+#corrplot::corrplot(cor(df[c("mean_age", "first", "last", "predictor", "diff")], use="complete.obs"))
+```
+
+### Learning curve: Model selection
+
+```{r}
+smoothing_spline = gamm(value ~ s(predictor, bs="ps"), random=list(id=~1), data=data)
+summary(smoothing_spline$lme)
+summary(smoothing_spline$gam)
+
+REM_linear = lmer(value ~ (1|id) + predictor, data)
+equ_linear = function(t) fixef(REM_linear)[1] + fixef(REM_linear)[2]*t
+summary(REM_linear)
+
+REM_quadratic = lmer(value ~ (1|id) + predictor + I(predictor^2), data)
+equ_quadratic = function(t) fixef(REM_quadratic)[1] + fixef(REM_quadratic)[2]*t + fixef(REM_quadratic)[3]*t^2
+summary(REM_quadratic)
+
+REM_bounded = nlmer(value ~ SSasymp(predictor, yf, y0, log_alpha) ~ (y0|id) + (yf|id), data = data, start=c(yf=40, y0=20, log_alpha=-1))
+y0=fixef(REM_bounded)["y0"]
+yf=fixef(REM_bounded)["yf"]
+log_alpha=fixef(REM_bounded)["log_alpha"]
+equ_bounded = function(t, yf=fixef(REM_bounded)[["yf"]], y0=fixef(REM_bounded)[["y0"]], log_alpha=fixef(REM_bounded)[["log_alpha"]]) yf+(y0-yf)*exp(-exp(log_alpha)*t)
+summary(REM_bounded)
+exp(log_alpha)
+
+cat("Average improvement over baseline: ", (yf-y0)/y0*100)
+
+RMSE = sapply(list(REM_linear, REM_quadratic, smoothing_spline$lme, REM_bounded), function(mod) sqrt(mean(resid(mod)^2))) # RMSE
+RMSE
+sapply(list(REM_linear, REM_quadratic, smoothing_spline$lme, REM_bounded), function(mod) mean(abs(resid(mod)))) # MAE
+sapply(list(REM_linear, REM_quadratic, smoothing_spline$lme, REM_bounded), function(mod) extractAIC(mod)) # edf & AIC: smoothing_spline$lme always has edf 5
+edf = sapply(list(REM_linear, REM_quadratic, smoothing_spline$gam, REM_bounded), function(mod) { nrow(data)-df.residual(mod) }) # while smoothing_spline$gam often has much higher edf
+edf
+
+RMSE = round(RMSE,1)
+edf = round(edf,1)
+```
+
+#### Plot
+
+```{r fig.width=8.2}
+participation_duration = data %>% group_by(id) %>% summarise(weeks=last(predictor), .groups="keep") %>% deframe()
+remaining_participants_bins = seq(0,350,by=10)
+remaining_participants = data.frame(x=remaining_participants_bins, text=sapply(remaining_participants_bins, function(x) sum(participation_duration>=x)))
+
+xmax = remaining_participants$x[which(remaining_participants$text<10)[1]]
+
+range_90p =quantile(data$value, probs=c(0.05,0.95))
+
+p1 = ggplot() +
+  geom_line(aes_string("predictor", "value", group="id"), data, color="darkgrey", alpha=0.1) +
+  geom_line(aes(x,y), data.frame(x=0:xmax, y=predict(smoothing_spline$gam, newdata=data.frame(predictor=0:xmax))), linetype="longdash", size=1) + xlim(0,xmax) + ylim(range_90p[1], range_90p[2]) +
+  stat_function(fun=equ_linear, color="blue", linetype="dotted", size=1) + 
+  stat_function(fun=equ_quadratic, color="green4", linetype="dashed", size=1) + 
+  stat_function(fun=equ_bounded, color=linecolor, size=1) + 
+  theme_pubr(base_family="Serif") + no_x + xlab(NULL) + ylab(params$unit) +
+  geom_richtext(aes(x,y,label=label,hjust=1), data.frame(x=0.8*xmax, y=range_90p[2]-(range_90p[2]-range_90p[1])/1.3, label=paste0("Model RMSE (edf):<br><span style='color:#0000ff'>····· Linear: ", RMSE[1], " (", edf[1], ") </span><br><span style='color:#008b00'>- - - Quadratic: ", RMSE[2], " (", edf[2], ") </span><br><span style='color:#000000'>— — Smoothing spline: ", RMSE[3], " (", edf[3], ") </span><br><span style='color:", linecolor, "'>— Bounded growth: ", RMSE[4], " (", edf[4], ") </span>")), family="Serif")
+
+p2 = ggplot(remaining_participants[remaining_participants$x<=xmax,]) +
+  geom_text(aes(x=x,y="A",label=text), family="Serif") +
+  theme_pubr(base_family="Serif") + no_y + xlab(params$xlab) + ylab(paste0("Remaining \n ", params$unit_n, "s")) +
+  scale_x_continuous(breaks=seq(0,xmax,by=10))
+
+(p1 / p2) + plot_layout(heights=c(0.9,0.1))
+```
+
+```{r}
+if (params$bounded.growth.confidence.interval) conf = confint.merMod(REM_bounded, c("y0","yf","log_alpha"), method="profile")
+```
+
+```{r}
+if (params$bounded.growth.confidence.interval) {
+  print(conf)
+  print(exp(conf[3,]))
+  print(paste0("Average boundary improvement over baseline: ", round((yf-y0)/y0*100, 1), " (", round((conf[1,1]-conf[2,1])/conf[2,1]*100, 1), "-", round((conf[1,2]-conf[2,2])/conf[2,2]*100, 1), ")"))
+}
+```
+
+### Bounded growth model
+
+```{r fig.width=8.2, fig.height=4}
+equ_diff_REM_bounded = function(t) exp(log_alpha)*(yf-y0)*exp(exp(log_alpha)*-t)
+equ_diff_get_time_REM_bounded = function(target_slope) log(exp(log_alpha)*(yf-y0)/target_slope)/exp(log_alpha)
+
+equ_bounded_get_x = function(target_value) exp(-log_alpha)*log((yf-y0)/(yf-target_value))
+
+growth_percentiles = c(0, 0.5, 0.9)
+names_percentiles = c("baseline", "half-practice point", "90% practice")
+selected_timepoints = equ_bounded_get_x(y0+(yf-y0)*growth_percentiles)
+example_slopes_bounded = data.frame(
+  x=selected_timepoints,
+  y=equ_bounded(selected_timepoints),
+  label=paste0("y=", round(equ_bounded(selected_timepoints),1), ", m=", signif(equ_diff_REM_bounded(selected_timepoints),2), " at ", params$unit_time, " ", round(selected_timepoints,0), ", ", names_percentiles),
+  vjust=1.5
+)
+example_slopes_bounded = rbind(example_slopes_bounded, list(x=0.83*xmax, y=yf, label=paste0("boundary: ", round(yf, 1)), vjust=-1.0))
+
+if (params$bounded.growth.confidence.interval) ribbon = data.frame(x=seq(0,xmax,0.05), ymin=equ_bounded(seq(0,xmax,0.05), conf["yf","2.5 %"], conf["y0","2.5 %"], conf["log_alpha","2.5 %"]), ymax=equ_bounded(seq(0,xmax,0.05), conf["yf","97.5 %"], conf["y0","97.5 %"], conf["log_alpha","97.5 %"]))
+
+quant = quantile(table(data$id))
+print(paste0("n tests = ", nrow(data), " (n ", params$unit_n, "s = ", length(unique(data$id)), ", median tests per ", params$unit_n, ": ", quant["50%"], ", IQR ", quant["25%"], "-", quant["75%"], ")"))
+
+p1 = ggplot() + geom_line(aes_string("predictor", "value", group="id"), data, color="darkgrey", alpha=0.2) +
+  theme_pubr(base_family="Serif") + scale_x_continuous(limits = c(0,xmax), expand = expansion(mult = c(0, 0))) + scale_y_continuous(expand = expansion(mult = c(0, 0))) + xlab(params$xlab) + ylab(params$unit) +
+  geom_vline(xintercept=example_slopes_bounded[2,"x"], color=linecolor, linetype=2) +
+  stat_function(fun=equ_bounded, color=linecolor, size=1) +
+  geom_point(data=example_slopes_bounded[1:(nrow(example_slopes_bounded)-1),], aes(x,y), color=linecolor, size=5) +
+  geom_text(data=example_slopes_bounded, aes(x,y,label=label, vjust=vjust), color=linecolor, hjust=-0.01, family="Serif")
+
+if (params$bounded.growth.confidence.interval) p1 = p1 + geom_ribbon(aes(x=x, ymin=ymin, ymax=ymax), ribbon, fill=linecolor, alpha=0.3)
+
+p1
+```
+
+### Quantile regression
+
+```{r fig.width=8.2, fig.height=4}
+if (is.null(params$censor_after)) {
+  censor_after = as.integer(round(selected_timepoints[2])) # half-practice point
+} else {
+  censor_after = params$censor_after
+}
+data_censored = data[data$predictor <= censor_after,]
+
+percentiles = c(0.05,0.25,0.5,0.75,0.95)
+
+QR = rq(value ~ predictor, tau=percentiles, data_censored)
+
+p_vals = sapply(1:length(summary(QR)), function(i) {
+  summ = coef(summary(QR, se="ker")[[i]])
+  print(summ)
+  print(paste0("Intercept: ", round(summ[1,1],1), " (", round(summ[1,1]-1.96*summ[1,2],1), "-", round(summ[1,1]+1.96*summ[1,2],1), "), beta: ", round(summ[2,1],2), " (", round(summ[2,1]-1.96*summ[2,2],2), "-", round(summ[2,1]+1.96*summ[2,2],2), ")"))
+  summ[2,4]
+})
+
+p_vals = p.adjust(p_vals, method="bonferroni")
+
+ANOVA = anova(QR)
+
+quant = quantile(table(data_censored$id))
+print(paste0("n tests = ", nrow(data_censored), " (median tests per ", params$unit_n, ": ", quant["50%"], ", IQR ", quant["25%"], "-", quant["75%"], ")"))
+
+ggplot() + geom_line(aes_string("predictor", "value", group="id"), data_censored, alpha=0.2, color="darkgrey") + theme_pubr(base_family="Serif") + scale_x_continuous(expand = expansion(mult = c(0, 0))) + scale_y_continuous(expand = expansion(mult = c(0, 0))) + theme(legend.position = "none") + xlab(params$xlab) + ylab(params$unit) +
+  geom_abline(intercept=coef(QR)[1,], slope=coef(QR)[2,], color=linecolor) +
+  geom_text(data=data.frame(intercept=coef(QR)[1,], label=paste0(percentiles*100, "th percentile: β = ", round(coef(QR)[2,],1), ", ", "p.adj = ", signif(p_vals,1))),
+            mapping=aes(x=1,y=intercept, label=label), color=linecolor, hjust="left", vjust=1, family="Serif") +
+  coord_cartesian(xlim=c(0,censor_after)) +
+  geom_text(aes(x=x,y=y,label=label), data.frame(x=0.8*censor_after, y=0, label=paste0("ANOVA p=", signif(ANOVA$table$pvalue, 1))), vjust=-1.5, family="Serif") +
+  geom_vline(xintercept=censor_after, color=linecolor, linetype=2)
+```
+
+

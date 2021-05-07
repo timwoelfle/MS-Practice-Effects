@@ -1,0 +1,279 @@
+---
+title: "Floodlight practice effects"
+author: "Tim Woelfle"
+date: "07.05.2021"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+---
+
+# Main analysis
+
+Performance as a function of number of repetitions
+Minimum number of repetitions: 5, minimum number of weeks: 5
+
+## Cognition (SDMT)
+
+```{r}
+params = list(
+  test_code = "ips",
+  test_metric_code = "correct_responses",
+  unit = "SDMT: Correct Responses",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  predictor = "repetition",
+  xlab = "Repetitions",
+  bounded.growth.confidence.interval = T,
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Finger Pinching)
+
+```{r}
+params = list(
+  test_code = "pinching",
+  test_metric_code = "successful_pinches",
+  unit = "Pinching: Successful Pinches",
+  unit_n = "hand",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  predictor = "repetition",
+  xlab = "Repetitions",
+  bounded.growth.confidence.interval = T,
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Two Minute Walk)
+
+```{r}
+params = list(
+  test_code = "two_min_walk",
+  test_metric_code = "steps",
+  unit = "Two Minute Walk: Steps",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  predictor = "repetition",
+  xlab = "Repetitions",
+  bounded.growth.confidence.interval = F,
+  censor_after = 9, # allow comparison with cognition
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+
+# Sensitivity analysis 1
+
+Performance as a function of number of repetitions
+Minimum number of repetitions: 10, minimum number of weeks: 10
+
+## Cognition
+
+```{r}
+params = list(
+  test_code = "ips",
+  test_metric_code = "correct_responses",
+  unit = "SDMT: Correct Responses",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  predictor = "repetition",
+  xlab = "Repetitions",
+  bounded.growth.confidence.interval = F,
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity
+
+```{r}
+params = list(
+  test_code = "pinching",
+  test_metric_code = "successful_pinches",
+  unit = "Pinching: Successful Pinches",
+  unit_n = "hand",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  predictor = "repetition",
+  xlab = "Repetitions",
+  bounded.growth.confidence.interval = F,
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility
+
+```{r}
+params = list(
+  test_code = "two_min_walk",
+  test_metric_code = "steps",
+  unit = "Two Minute Walk: Steps",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  predictor = "repetition",
+  xlab = "Repetitions",
+  bounded.growth.confidence.interval = F,
+  censor_after = 10, # allow comparison with cognition
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+# Sensivity Analysis 2
+
+Performance as a function of weeks since first test
+Minimum number of repetitions: 5, minimum number of weeks: 5
+
+## Cognition
+
+```{r}
+params = list(
+  test_code = "ips",
+  test_metric_code = "correct_responses",
+  unit = "SDMT: Correct Responses",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  predictor = "weeksSinceFirst",
+  xlab = "Weeks",
+  bounded.growth.confidence.interval = F,
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity
+
+```{r}
+params = list(
+  test_code = "pinching",
+  test_metric_code = "successful_pinches",
+  unit = "Pinching: Successful Pinches",
+  unit_n = "hand",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  predictor = "weeksSinceFirst",
+  xlab = "Weeks",
+  bounded.growth.confidence.interval = F,
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility
+
+```{r}
+params = list(
+  test_code = "two_min_walk",
+  test_metric_code = "steps",
+  unit = "Two Minute Walk: Steps",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  predictor = "weeksSinceFirst",
+  xlab = "Weeks",
+  bounded.growth.confidence.interval = F,
+  censor_after = 11, # allow comparison with cognition
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+
+# Sensitivity analysis 3
+
+Performance as a function of weeks since first test
+Minimum number of repetitions: 10, minimum number of weeks: 10
+
+## Cognition
+
+```{r}
+params = list(
+  test_code = "ips",
+  test_metric_code = "correct_responses",
+  unit = "SDMT: Correct Responses",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  predictor = "weeksSinceFirst",
+  xlab = "Weeks",
+  bounded.growth.confidence.interval = F,
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity
+
+```{r}
+params = list(
+  test_code = "pinching",
+  test_metric_code = "successful_pinches",
+  unit = "Pinching: Successful Pinches",
+  unit_n = "hand",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  predictor = "weeksSinceFirst",
+  xlab = "Weeks",
+  bounded.growth.confidence.interval = F,
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility
+
+```{r}
+params = list(
+  test_code = "two_min_walk",
+  test_metric_code = "steps",
+  unit = "Two Minute Walk: Steps",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  predictor = "weeksSinceFirst",
+  xlab = "Weeks",
+  bounded.growth.confidence.interval = F,
+  censor_after = 11, # allow comparison with cognition
+  up_to_date = "2021-05-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
