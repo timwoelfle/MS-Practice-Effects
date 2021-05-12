@@ -363,12 +363,18 @@ ANOVA = anova(QR)
 quant = quantile(table(data_censored$id))
 print(paste0("n tests = ", nrow(data_censored), " (median tests per ", params$unit_n, ": ", quant["50%"], ", IQR ", quant["25%"], "-", quant["75%"], ")"))
 
+signif_p = function(x, digits=1) {
+  x = signif(x, digits)
+  if (as.character(x) == "0") return("< 2e-16")
+  else return(paste0("= ", x))
+}
+
 ggplot() + geom_line(aes_string("predictor", "value", group="id"), data_censored, alpha=0.2, color="darkgrey") + theme_pubr(base_family="Serif") + scale_x_continuous(expand = expansion(mult = c(0, 0))) + scale_y_continuous(expand = expansion(mult = c(0, 0))) + theme(legend.position = "none") + xlab(params$xlab) + ylab(params$unit) +
   geom_abline(intercept=coef(QR)[1,], slope=coef(QR)[2,], color=linecolor) +
-  geom_text(data=data.frame(intercept=coef(QR)[1,], label=paste0(percentiles*100, "th percentile: β = ", round(coef(QR)[2,],1), ", ", "p.adj = ", signif(p_vals,1))),
+  geom_text(data=data.frame(intercept=coef(QR)[1,], label=paste0(percentiles*100, "th percentile: β = ", round(coef(QR)[2,],1), ", ", "p.adj ", sapply(p_vals,signif_p))),
             mapping=aes(x=1,y=intercept, label=label), color=linecolor, hjust="left", vjust=1, family="Serif") +
   coord_cartesian(xlim=c(0,censor_after)) +
-  geom_text(aes(x=x,y=y,label=label), data.frame(x=0.8*censor_after, y=0, label=paste0("ANOVA p=", signif(ANOVA$table$pvalue, 1))), vjust=-1.5, family="Serif") +
+  geom_text(aes(x=x,y=y,label=label), data.frame(x=0.8*censor_after, y=0, label=paste0("ANOVA p ", signif_p(ANOVA$table$pvalue, 1))), vjust=-1.5, family="Serif") +
   geom_vline(xintercept=censor_after, color=linecolor, linetype=2)
 ```
 
