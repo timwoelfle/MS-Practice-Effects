@@ -1,3 +1,5 @@
 all-analyses_cache
 all-analyses_files
+single-test-analysis_cache
+single-test-analysis_files
 complete_dataset.csv

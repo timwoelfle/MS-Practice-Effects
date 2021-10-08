@@ -1,36 +1,74 @@
 ---
 title: "Floodlight practice effects"
 author: "Tim Woelfle"
-date: "07.05.2021"
+date: "04.08.2021"
 output:
   html_document:
     code_folding: hide
     toc: yes
+    toc_depth: 4
     toc_float:
-      collapsed: no
+      collapsed: yes
       smooth_scroll: no
 ---
 
 # Main analysis
 
 Performance as a function of number of repetitions
-Minimum number of repetitions: 5, minimum number of weeks: 5
+Minimum number of repetitions: 5, minimum number of weeks between first and last: 5
 
-## Cognition (SDMT)
+## Cognition (e-SDMT)
 
-```{r}
+Floodlight Open test code: "ips" (information processing speed)
+
+```{r main ips}
 params = list(
   test_code = "ips",
   test_metric_code = "correct_responses",
-  unit = "SDMT: Correct Responses",
+  unit = "e-SDMT: Correct Responses",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 5,
   min_weeks = 5,
-  predictor = "repetition",
-  xlab = "Repetitions",
-  bounded.growth.confidence.interval = T,
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Cognition (e-SDMT corrected)
+
+e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Digit Tapping (or in Floodlight's terms: ips / ips_baseline)
+
+```{r main ips_over_ips_baseline}
+params = list(
+  test_code = "ips_over_ips_baseline",
+  test_metric_code = "correct_responses",
+  unit = "e-SDMT corrected: Correct Responses",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Digit Tapping)
+
+Floodlight Open test code: "ips_baseline" (information processing speed baseline)
+
+```{r main ips_baseline}
+params = list(
+  test_code = "ips_baseline",
+  test_metric_code = "correct_responses",
+  unit = "Digit Tapping: Correct responses",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
@@ -38,7 +76,9 @@ params = list(
 
 ## Dexterity (Finger Pinching)
 
-```{r}
+Floodlight Open test code: "pinching"
+
+```{r main pinching}
 params = list(
   test_code = "pinching",
   test_metric_code = "successful_pinches",
@@ -47,10 +87,26 @@ params = list(
   unit_time = "repetition",
   min_repetitions = 5,
   min_weeks = 5,
-  predictor = "repetition",
-  xlab = "Repetitions",
-  bounded.growth.confidence.interval = T,
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Draw A Shape)
+
+Floodlight Open test code: "draw_a_shape"
+
+```{r main draw_a_shape}
+params = list(
+  test_code = "draw_a_shape",
+  test_metric_code = "number_shapes_drawn_correctly",
+  unit = "Drawing: Shapes Drawn Correctly",
+  unit_n = "hand",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
@@ -58,7 +114,9 @@ params = list(
 
 ## Mobility (Two Minute Walk)
 
-```{r}
+Floodlight Open test code: "two_min_walk"
+
+```{r main two_min_walk}
 params = list(
   test_code = "two_min_walk",
   test_metric_code = "steps",
@@ -67,111 +125,174 @@ params = list(
   unit_time = "repetition",
   min_repetitions = 5,
   min_weeks = 5,
-  predictor = "repetition",
-  xlab = "Repetitions",
-  bounded.growth.confidence.interval = F,
-  censor_after = 9, # allow comparison with cognition
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
+## Mobility (U-Turn / Speed)
+
+Floodlight Open test code: "five_u_turn"
+
+```{r main five_u_turn speed}
+params = list(
+  test_code = "five_u_turn",
+  test_metric_code = "turn_speed_avg",
+  unit = "U-Turn: Turn Speed Average",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (U-Turn / Turns)
+
+Floodlight Open test code: "five_u_turn"
+
+```{r main five_u_turn turns}
+params = list(
+  test_code = "five_u_turn",
+  test_metric_code = "turns",
+  unit = "U-Turn: Number of Turns",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Static Balance)
+
+Floodlight Open test code: "static_balance"
+
+```{r main static_balance}
+params = list(
+  test_code = "static_balance",
+  test_metric_code = "sway_path",
+  unit = "Static Balance: Sway Path",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Passive Monitoring)
+
+Floodlight Open test code: "mobility"
+
+```{r main mobility}
+params = list(
+  test_code = "mobility",
+  test_metric_code = "life_space_daily",
+  unit = "Passive Monitoring: Life Space Daily",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mood (Daily question)
+
+Floodlight Open test code: "daily_questions"
+
+```{r main daily_questions}
+params = list(
+  test_code = "daily_questions",
+  test_metric_code = "mood_response",
+  unit = "Daily Question: Mood",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
 
 # Sensitivity analysis 1
 
-Performance as a function of number of repetitions
-Minimum number of repetitions: 10, minimum number of weeks: 10
-
-## Cognition
-
-```{r}
-params = list(
-  test_code = "ips",
-  test_metric_code = "correct_responses",
-  unit = "SDMT: Correct Responses",
-  unit_n = "patient",
-  unit_time = "repetition",
-  min_repetitions = 10,
-  min_weeks = 10,
-  predictor = "repetition",
-  xlab = "Repetitions",
-  bounded.growth.confidence.interval = F,
-  up_to_date = "2021-05-01"
-)
-```
-```{r child='single-test-analysis.Rmd', cache=T}
-```
-
-## Dexterity
-
-```{r}
-params = list(
-  test_code = "pinching",
-  test_metric_code = "successful_pinches",
-  unit = "Pinching: Successful Pinches",
-  unit_n = "hand",
-  unit_time = "repetition",
-  min_repetitions = 10,
-  min_weeks = 10,
-  predictor = "repetition",
-  xlab = "Repetitions",
-  bounded.growth.confidence.interval = F,
-  up_to_date = "2021-05-01"
-)
-```
-```{r child='single-test-analysis.Rmd', cache=T}
-```
-
-## Mobility
-
-```{r}
-params = list(
-  test_code = "two_min_walk",
-  test_metric_code = "steps",
-  unit = "Two Minute Walk: Steps",
-  unit_n = "patient",
-  unit_time = "repetition",
-  min_repetitions = 10,
-  min_weeks = 10,
-  predictor = "repetition",
-  xlab = "Repetitions",
-  bounded.growth.confidence.interval = F,
-  censor_after = 10, # allow comparison with cognition
-  up_to_date = "2021-05-01"
-)
-```
-```{r child='single-test-analysis.Rmd', cache=T}
-```
-
-# Sensivity Analysis 2
-
 Performance as a function of weeks since first test
-Minimum number of repetitions: 5, minimum number of weeks: 5
+Minimum number of repetitions: 5, minimum number of weeks between first and last: 5
 
-## Cognition
+## Cognition (e-SDMT)
 
-```{r}
+Floodlight Open test code: "ips" (information processing speed)
+
+```{r sens1 ips}
 params = list(
   test_code = "ips",
   test_metric_code = "correct_responses",
-  unit = "SDMT: Correct Responses",
+  unit = "e-SDMT: Correct Responses",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 5,
   min_weeks = 5,
-  predictor = "weeksSinceFirst",
-  xlab = "Weeks",
-  bounded.growth.confidence.interval = F,
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
-## Dexterity
+## Cognition (e-SDMT corrected)
 
-```{r}
+e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Digit Tapping (or in Floodlight's terms: ips / ips_baseline)
+
+```{r sens1 ips_over_ips_baseline}
+params = list(
+  test_code = "ips_over_ips_baseline",
+  test_metric_code = "correct_responses",
+  unit = "e-SDMT corrected: Correct Responses",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Digit Tapping)
+
+Floodlight Open test code: "ips_baseline" (information processing speed baseline)
+
+```{r sens1 ips_baseline}
+params = list(
+  test_code = "ips_baseline",
+  test_metric_code = "correct_responses",
+  unit = "Digit Tapping: Correct responses",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Finger Pinching)
+
+Floodlight Open test code: "pinching"
+
+```{r sens1 pinching}
 params = list(
   test_code = "pinching",
   test_metric_code = "successful_pinches",
@@ -180,18 +301,36 @@ params = list(
   unit_time = "week",
   min_repetitions = 5,
   min_weeks = 5,
-  predictor = "weeksSinceFirst",
-  xlab = "Weeks",
-  bounded.growth.confidence.interval = F,
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
-## Mobility
+## Dexterity (Draw A Shape)
 
-```{r}
+Floodlight Open test code: "draw_a_shape"
+
+```{r sens1 draw_a_shape}
+params = list(
+  test_code = "draw_a_shape",
+  test_metric_code = "number_shapes_drawn_correctly",
+  unit = "Drawing: Shapes Drawn Correctly",
+  unit_n = "hand",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Two Minute Walk)
+
+Floodlight Open test code: "two_min_walk"
+
+```{r sens1 two_min_walk}
 params = list(
   test_code = "two_min_walk",
   test_metric_code = "steps",
@@ -200,45 +339,388 @@ params = list(
   unit_time = "week",
   min_repetitions = 5,
   min_weeks = 5,
-  predictor = "weeksSinceFirst",
-  xlab = "Weeks",
-  bounded.growth.confidence.interval = F,
-  censor_after = 11, # allow comparison with cognition
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
+## Mobility (U-Turn / Speed)
+
+Floodlight Open test code: "five_u_turn"
+
+```{r sens1 five_u_turn speed}
+params = list(
+  test_code = "five_u_turn",
+  test_metric_code = "turn_speed_avg",
+  unit = "U-Turn: Turn Speed Average",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (U-Turn / Turns)
+
+Floodlight Open test code: "five_u_turn"
+
+```{r sens1 five_u_turn turns}
+params = list(
+  test_code = "five_u_turn",
+  test_metric_code = "turns",
+  unit = "U-Turn: Number of Turns",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Static Balance)
+
+Floodlight Open test code: "static_balance"
+
+```{r sens1 static_balance}
+params = list(
+  test_code = "static_balance",
+  test_metric_code = "sway_path",
+  unit = "Static Balance: Sway Path",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Passive Monitoring)
+
+Floodlight Open test code: "mobility"
+
+```{r sens1 mobility}
+params = list(
+  test_code = "mobility",
+  test_metric_code = "life_space_daily",
+  unit = "Passive Monitoring: Life Space Daily",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mood (Daily question)
+
+Floodlight Open test code: "daily_questions"
+
+```{r sens1 daily_questions}
+params = list(
+  test_code = "daily_questions",
+  test_metric_code = "mood_response",
+  unit = "Daily Question: Mood",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 5,
+  min_weeks = 5,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+# Sensitivity analysis 2
+
+Performance as a function of number of repetitions
+Minimum number of repetitions: 10, minimum number of weeks between first and last: 10
+
+## Cognition (e-SDMT)
+
+Floodlight Open test code: "ips" (information processing speed)
+
+```{r sens2 ips}
+params = list(
+  test_code = "ips",
+  test_metric_code = "correct_responses",
+  unit = "e-SDMT: Correct Responses",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Cognition (e-SDMT corrected)
+
+e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Digit Tapping (or in Floodlight's terms: ips / ips_baseline)
+
+```{r sens2 ips_over_ips_baseline}
+params = list(
+  test_code = "ips_over_ips_baseline",
+  test_metric_code = "correct_responses",
+  unit = "e-SDMT corrected: Correct Responses",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Digit Tapping)
+
+Floodlight Open test code: "ips_baseline" (information processing speed baseline)
+
+```{r sens2 ips_baseline}
+params = list(
+  test_code = "ips_baseline",
+  test_metric_code = "correct_responses",
+  unit = "Digit Tapping: Correct responses",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Finger Pinching)
+
+Floodlight Open test code: "pinching"
+
+```{r sens2 pinching}
+params = list(
+  test_code = "pinching",
+  test_metric_code = "successful_pinches",
+  unit = "Pinching: Successful Pinches",
+  unit_n = "hand",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Draw A Shape)
+
+Floodlight Open test code: "draw_a_shape"
+
+```{r sens2 draw_a_shape}
+params = list(
+  test_code = "draw_a_shape",
+  test_metric_code = "number_shapes_drawn_correctly",
+  unit = "Drawing: Shapes Drawn Correctly",
+  unit_n = "hand",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Two Minute Walk)
+
+Floodlight Open test code: "two_min_walk"
+
+```{r sens2 two_min_walk}
+params = list(
+  test_code = "two_min_walk",
+  test_metric_code = "steps",
+  unit = "Two Minute Walk: Steps",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (U-Turn / Speed)
+
+Floodlight Open test code: "five_u_turn"
+
+```{r sens2 five_u_turn speed}
+params = list(
+  test_code = "five_u_turn",
+  test_metric_code = "turn_speed_avg",
+  unit = "U-Turn: Turn Speed Average",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (U-Turn / Turns)
+
+Floodlight Open test code: "five_u_turn"
+
+```{r sens2 five_u_turn turns}
+params = list(
+  test_code = "five_u_turn",
+  test_metric_code = "turns",
+  unit = "U-Turn: Number of Turns",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Static Balance)
+
+Floodlight Open test code: "static_balance"
+
+```{r sens2 static_balance}
+params = list(
+  test_code = "static_balance",
+  test_metric_code = "sway_path",
+  unit = "Static Balance: Sway Path",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Passive Monitoring)
+
+Floodlight Open test code: "mobility"
+
+```{r sens2 mobility}
+params = list(
+  test_code = "mobility",
+  test_metric_code = "life_space_daily",
+  unit = "Passive Monitoring: Life Space Daily",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mood (Daily question)
+
+Floodlight Open test code: "daily_questions"
+
+```{r sens2 daily_questions}
+params = list(
+  test_code = "daily_questions",
+  test_metric_code = "mood_response",
+  unit = "Daily Question: Mood",
+  unit_n = "patient",
+  unit_time = "repetition",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
 
 # Sensitivity analysis 3
 
 Performance as a function of weeks since first test
-Minimum number of repetitions: 10, minimum number of weeks: 10
+Minimum number of repetitions: 10, minimum number of weeks between first and last: 10
 
-## Cognition
+## Cognition (e-SDMT)
 
-```{r}
+Floodlight Open test code: "ips" (information processing speed)
+
+```{r sens3 ips}
 params = list(
   test_code = "ips",
   test_metric_code = "correct_responses",
-  unit = "SDMT: Correct Responses",
+  unit = "e-SDMT: Correct Responses",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 10,
   min_weeks = 10,
-  predictor = "weeksSinceFirst",
-  xlab = "Weeks",
-  bounded.growth.confidence.interval = F,
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
-## Dexterity
+## Cognition (e-SDMT corrected)
 
-```{r}
+e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Digit Tapping (or in Floodlight's terms: ips / ips_baseline)
+
+```{r sens3 ips_over_ips_baseline}
+params = list(
+  test_code = "ips_over_ips_baseline",
+  test_metric_code = "correct_responses",
+  unit = "e-SDMT corrected: Correct Responses",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Digit Tapping)
+
+Floodlight Open test code: "ips_baseline" (information processing speed baseline)
+
+```{r sens3 ips_baseline}
+params = list(
+  test_code = "ips_baseline",
+  test_metric_code = "correct_responses",
+  unit = "Digit Tapping: Correct responses",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Dexterity (Finger Pinching)
+
+Floodlight Open test code: "pinching"
+
+```{r sens3 pinching}
 params = list(
   test_code = "pinching",
   test_metric_code = "successful_pinches",
@@ -247,18 +729,36 @@ params = list(
   unit_time = "week",
   min_repetitions = 10,
   min_weeks = 10,
-  predictor = "weeksSinceFirst",
-  xlab = "Weeks",
-  bounded.growth.confidence.interval = F,
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
-## Mobility
+## Dexterity (Draw A Shape)
 
-```{r}
+Floodlight Open test code: "draw_a_shape"
+
+```{r sens3 draw_a_shape}
+params = list(
+  test_code = "draw_a_shape",
+  test_metric_code = "number_shapes_drawn_correctly",
+  unit = "Drawing: Shapes Drawn Correctly",
+  unit_n = "hand",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Two Minute Walk)
+
+Floodlight Open test code: "two_min_walk"
+
+```{r sens3 two_min_walk}
 params = list(
   test_code = "two_min_walk",
   test_metric_code = "steps",
@@ -267,11 +767,102 @@ params = list(
   unit_time = "week",
   min_repetitions = 10,
   min_weeks = 10,
-  predictor = "weeksSinceFirst",
-  xlab = "Weeks",
-  bounded.growth.confidence.interval = F,
-  censor_after = 11, # allow comparison with cognition
-  up_to_date = "2021-05-01"
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (U-Turn / Speed)
+
+Floodlight Open test code: "five_u_turn"
+
+```{r sens3 five_u_turn speed}
+params = list(
+  test_code = "five_u_turn",
+  test_metric_code = "turn_speed_avg",
+  unit = "U-Turn: Turn Speed Average",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (U-Turn / Turns)
+
+Floodlight Open test code: "five_u_turn"
+
+```{r sens3 five_u_turn turns}
+params = list(
+  test_code = "five_u_turn",
+  test_metric_code = "turns",
+  unit = "U-Turn: Number of Turns",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Static Balance)
+
+Floodlight Open test code: "static_balance"
+
+```{r sens3 static_balance}
+params = list(
+  test_code = "static_balance",
+  test_metric_code = "sway_path",
+  unit = "Static Balance: Sway Path",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mobility (Passive Monitoring)
+
+Floodlight Open test code: "mobility"
+
+```{r sens3 mobility}
+params = list(
+  test_code = "mobility",
+  test_metric_code = "life_space_daily",
+  unit = "Passive Monitoring: Life Space Daily",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
+)
+```
+```{r child='single-test-analysis.Rmd', cache=T}
+```
+
+## Mood (Daily question)
+
+Floodlight Open test code: "daily_questions"
+
+```{r sens3 daily_questions}
+params = list(
+  test_code = "daily_questions",
+  test_metric_code = "mood_response",
+  unit = "Daily Question: Mood",
+  unit_n = "patient",
+  unit_time = "week",
+  min_repetitions = 10,
+  min_weeks = 10,
+  up_to_date = "2021-08-01"
 )
 ```
 ```{r child='single-test-analysis.Rmd', cache=T}
