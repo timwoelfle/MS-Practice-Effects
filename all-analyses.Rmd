@@ -868,3 +868,11 @@ params = list(
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
+# R session info
+
+Provided for [reproducibility](https://the-turing-way.netlify.app/reproducible-research/overview/overview-definitions.html)
+
+```{r}
+sessionInfo(package = NULL)
+```
+
