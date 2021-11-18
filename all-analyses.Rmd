@@ -1,7 +1,7 @@
 ---
 title: "Floodlight practice effects"
 author: "Tim Woelfle"
-date: "04.08.2021"
+date: "29.10.2021"
 output:
   html_document:
     code_folding: hide
@@ -25,7 +25,7 @@ Floodlight Open test code: "ips" (information processing speed)
 params = list(
   test_code = "ips",
   test_metric_code = "correct_responses",
-  unit = "e-SDMT: Correct Responses",
+  unit = "e-SDMT: Correct responses",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -38,13 +38,13 @@ params = list(
 
 ## Cognition (e-SDMT corrected)
 
-e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Digit Tapping (or in Floodlight's terms: ips / ips_baseline)
+e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Match the Numbers (or in Floodlight's terms: ips / ips_baseline)
 
 ```{r main ips_over_ips_baseline}
 params = list(
   test_code = "ips_over_ips_baseline",
   test_metric_code = "correct_responses",
-  unit = "e-SDMT corrected: Correct Responses",
+  unit = "e-SDMT corrected:\nCorrect responses",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -55,7 +55,7 @@ params = list(
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
-## Dexterity (Digit Tapping)
+## Dexterity (Match the Numbers)
 
 Floodlight Open test code: "ips_baseline" (information processing speed baseline)
 
@@ -63,7 +63,7 @@ Floodlight Open test code: "ips_baseline" (information processing speed baseline
 params = list(
   test_code = "ips_baseline",
   test_metric_code = "correct_responses",
-  unit = "Digit Tapping: Correct responses",
+  unit = "Match the Numbers: Correct responses",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -82,7 +82,7 @@ Floodlight Open test code: "pinching"
 params = list(
   test_code = "pinching",
   test_metric_code = "successful_pinches",
-  unit = "Pinching: Successful Pinches",
+  unit = "Pinching: Successful pinches",
   unit_n = "hand",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -101,7 +101,7 @@ Floodlight Open test code: "draw_a_shape"
 params = list(
   test_code = "draw_a_shape",
   test_metric_code = "number_shapes_drawn_correctly",
-  unit = "Drawing: Shapes Drawn Correctly",
+  unit = "Drawing: Shapes drawn correctly",
   unit_n = "hand",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -139,7 +139,7 @@ Floodlight Open test code: "five_u_turn"
 params = list(
   test_code = "five_u_turn",
   test_metric_code = "turn_speed_avg",
-  unit = "U-Turn: Turn Speed Average",
+  unit = "U-Turn: Turn speed average",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -158,7 +158,7 @@ Floodlight Open test code: "five_u_turn"
 params = list(
   test_code = "five_u_turn",
   test_metric_code = "turns",
-  unit = "U-Turn: Number of Turns",
+  unit = "U-Turn: Number of turns",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -177,7 +177,7 @@ Floodlight Open test code: "static_balance"
 params = list(
   test_code = "static_balance",
   test_metric_code = "sway_path",
-  unit = "Static Balance: Sway Path",
+  unit = "Static Balance: Sway path",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -196,7 +196,7 @@ Floodlight Open test code: "mobility"
 params = list(
   test_code = "mobility",
   test_metric_code = "life_space_daily",
-  unit = "Passive Monitoring: Life Space Daily",
+  unit = "Passive Monitoring: Life space daily",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 5,
@@ -239,7 +239,7 @@ Floodlight Open test code: "ips" (information processing speed)
 params = list(
   test_code = "ips",
   test_metric_code = "correct_responses",
-  unit = "e-SDMT: Correct Responses",
+  unit = "e-SDMT: Correct responses",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 5,
@@ -252,13 +252,13 @@ params = list(
 
 ## Cognition (e-SDMT corrected)
 
-e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Digit Tapping (or in Floodlight's terms: ips / ips_baseline)
+e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Match the Numbers (or in Floodlight's terms: ips / ips_baseline)
 
 ```{r sens1 ips_over_ips_baseline}
 params = list(
   test_code = "ips_over_ips_baseline",
   test_metric_code = "correct_responses",
-  unit = "e-SDMT corrected: Correct Responses",
+  unit = "e-SDMT corrected:\nCorrect responses",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 5,
@@ -269,7 +269,7 @@ params = list(
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
-## Dexterity (Digit Tapping)
+## Dexterity (Match the Numbers)
 
 Floodlight Open test code: "ips_baseline" (information processing speed baseline)
 
@@ -277,7 +277,7 @@ Floodlight Open test code: "ips_baseline" (information processing speed baseline
 params = list(
   test_code = "ips_baseline",
   test_metric_code = "correct_responses",
-  unit = "Digit Tapping: Correct responses",
+  unit = "Match the Numbers: Correct responses",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 5,
@@ -296,7 +296,7 @@ Floodlight Open test code: "pinching"
 params = list(
   test_code = "pinching",
   test_metric_code = "successful_pinches",
-  unit = "Pinching: Successful Pinches",
+  unit = "Pinching: Successful pinches",
   unit_n = "hand",
   unit_time = "week",
   min_repetitions = 5,
@@ -315,7 +315,7 @@ Floodlight Open test code: "draw_a_shape"
 params = list(
   test_code = "draw_a_shape",
   test_metric_code = "number_shapes_drawn_correctly",
-  unit = "Drawing: Shapes Drawn Correctly",
+  unit = "Drawing: Shapes drawn correctly",
   unit_n = "hand",
   unit_time = "week",
   min_repetitions = 5,
@@ -353,7 +353,7 @@ Floodlight Open test code: "five_u_turn"
 params = list(
   test_code = "five_u_turn",
   test_metric_code = "turn_speed_avg",
-  unit = "U-Turn: Turn Speed Average",
+  unit = "U-Turn: Turn speed average",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 5,
@@ -372,7 +372,7 @@ Floodlight Open test code: "five_u_turn"
 params = list(
   test_code = "five_u_turn",
   test_metric_code = "turns",
-  unit = "U-Turn: Number of Turns",
+  unit = "U-Turn: Number of turns",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 5,
@@ -391,7 +391,7 @@ Floodlight Open test code: "static_balance"
 params = list(
   test_code = "static_balance",
   test_metric_code = "sway_path",
-  unit = "Static Balance: Sway Path",
+  unit = "Static Balance: Sway path",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 5,
@@ -410,7 +410,7 @@ Floodlight Open test code: "mobility"
 params = list(
   test_code = "mobility",
   test_metric_code = "life_space_daily",
-  unit = "Passive Monitoring: Life Space Daily",
+  unit = "Passive Monitoring: Life space daily",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 5,
@@ -453,7 +453,7 @@ Floodlight Open test code: "ips" (information processing speed)
 params = list(
   test_code = "ips",
   test_metric_code = "correct_responses",
-  unit = "e-SDMT: Correct Responses",
+  unit = "e-SDMT: Correct responses",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -466,13 +466,13 @@ params = list(
 
 ## Cognition (e-SDMT corrected)
 
-e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Digit Tapping (or in Floodlight's terms: ips / ips_baseline)
+e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Match the Numbers (or in Floodlight's terms: ips / ips_baseline)
 
 ```{r sens2 ips_over_ips_baseline}
 params = list(
   test_code = "ips_over_ips_baseline",
   test_metric_code = "correct_responses",
-  unit = "e-SDMT corrected: Correct Responses",
+  unit = "e-SDMT corrected:\nCorrect responses",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -483,7 +483,7 @@ params = list(
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
-## Dexterity (Digit Tapping)
+## Dexterity (Match the Numbers)
 
 Floodlight Open test code: "ips_baseline" (information processing speed baseline)
 
@@ -491,7 +491,7 @@ Floodlight Open test code: "ips_baseline" (information processing speed baseline
 params = list(
   test_code = "ips_baseline",
   test_metric_code = "correct_responses",
-  unit = "Digit Tapping: Correct responses",
+  unit = "Match the Numbers: Correct responses",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -510,7 +510,7 @@ Floodlight Open test code: "pinching"
 params = list(
   test_code = "pinching",
   test_metric_code = "successful_pinches",
-  unit = "Pinching: Successful Pinches",
+  unit = "Pinching: Successful pinches",
   unit_n = "hand",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -529,7 +529,7 @@ Floodlight Open test code: "draw_a_shape"
 params = list(
   test_code = "draw_a_shape",
   test_metric_code = "number_shapes_drawn_correctly",
-  unit = "Drawing: Shapes Drawn Correctly",
+  unit = "Drawing: Shapes drawn correctly",
   unit_n = "hand",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -567,7 +567,7 @@ Floodlight Open test code: "five_u_turn"
 params = list(
   test_code = "five_u_turn",
   test_metric_code = "turn_speed_avg",
-  unit = "U-Turn: Turn Speed Average",
+  unit = "U-Turn: Turn speed average",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -586,7 +586,7 @@ Floodlight Open test code: "five_u_turn"
 params = list(
   test_code = "five_u_turn",
   test_metric_code = "turns",
-  unit = "U-Turn: Number of Turns",
+  unit = "U-Turn: Number of turns",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -605,7 +605,7 @@ Floodlight Open test code: "static_balance"
 params = list(
   test_code = "static_balance",
   test_metric_code = "sway_path",
-  unit = "Static Balance: Sway Path",
+  unit = "Static Balance: Sway path",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -624,7 +624,7 @@ Floodlight Open test code: "mobility"
 params = list(
   test_code = "mobility",
   test_metric_code = "life_space_daily",
-  unit = "Passive Monitoring: Life Space Daily",
+  unit = "Passive Monitoring: Life space daily",
   unit_n = "patient",
   unit_time = "repetition",
   min_repetitions = 10,
@@ -667,7 +667,7 @@ Floodlight Open test code: "ips" (information processing speed)
 params = list(
   test_code = "ips",
   test_metric_code = "correct_responses",
-  unit = "e-SDMT: Correct Responses",
+  unit = "e-SDMT: Correct responses",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 10,
@@ -680,13 +680,13 @@ params = list(
 
 ## Cognition (e-SDMT corrected)
 
-e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Digit Tapping (or in Floodlight's terms: ips / ips_baseline)
+e-SDMT corrected for dexterity by taking the quotient of correct responses of e-SDMT / Match the Numbers (or in Floodlight's terms: ips / ips_baseline)
 
 ```{r sens3 ips_over_ips_baseline}
 params = list(
   test_code = "ips_over_ips_baseline",
   test_metric_code = "correct_responses",
-  unit = "e-SDMT corrected: Correct Responses",
+  unit = "e-SDMT corrected:\nCorrect responses",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 10,
@@ -697,7 +697,7 @@ params = list(
 ```{r child='single-test-analysis.Rmd', cache=T}
 ```
 
-## Dexterity (Digit Tapping)
+## Dexterity (Match the Numbers)
 
 Floodlight Open test code: "ips_baseline" (information processing speed baseline)
 
@@ -705,7 +705,7 @@ Floodlight Open test code: "ips_baseline" (information processing speed baseline
 params = list(
   test_code = "ips_baseline",
   test_metric_code = "correct_responses",
-  unit = "Digit Tapping: Correct responses",
+  unit = "Match the Numbers: Correct responses",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 10,
@@ -724,7 +724,7 @@ Floodlight Open test code: "pinching"
 params = list(
   test_code = "pinching",
   test_metric_code = "successful_pinches",
-  unit = "Pinching: Successful Pinches",
+  unit = "Pinching: Successful pinches",
   unit_n = "hand",
   unit_time = "week",
   min_repetitions = 10,
@@ -743,7 +743,7 @@ Floodlight Open test code: "draw_a_shape"
 params = list(
   test_code = "draw_a_shape",
   test_metric_code = "number_shapes_drawn_correctly",
-  unit = "Drawing: Shapes Drawn Correctly",
+  unit = "Drawing: Shapes drawn correctly",
   unit_n = "hand",
   unit_time = "week",
   min_repetitions = 10,
@@ -781,7 +781,7 @@ Floodlight Open test code: "five_u_turn"
 params = list(
   test_code = "five_u_turn",
   test_metric_code = "turn_speed_avg",
-  unit = "U-Turn: Turn Speed Average",
+  unit = "U-Turn: Turn speed average",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 10,
@@ -800,7 +800,7 @@ Floodlight Open test code: "five_u_turn"
 params = list(
   test_code = "five_u_turn",
   test_metric_code = "turns",
-  unit = "U-Turn: Number of Turns",
+  unit = "U-Turn: Number of turns",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 10,
@@ -819,7 +819,7 @@ Floodlight Open test code: "static_balance"
 params = list(
   test_code = "static_balance",
   test_metric_code = "sway_path",
-  unit = "Static Balance: Sway Path",
+  unit = "Static Balance: Sway path",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 10,
@@ -838,7 +838,7 @@ Floodlight Open test code: "mobility"
 params = list(
   test_code = "mobility",
   test_metric_code = "life_space_daily",
-  unit = "Passive Monitoring: Life Space Daily",
+  unit = "Passive Monitoring: Life space daily",
   unit_n = "patient",
   unit_time = "week",
   min_repetitions = 10,

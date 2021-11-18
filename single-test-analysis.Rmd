@@ -1,7 +1,7 @@
 ---
 title: "Floodlight practice effects"
 author: "Tim Woelfle"
-date: "04.08.2021"
+date: "29.10.2021"
 output:
   html_document:
     code_folding: hide
@@ -13,7 +13,7 @@ output:
 params:
   test_code: "ips"
   test_metric_code: "correct_responses"
-  unit: "e-SDMT: Correct Responses"
+  unit: "e-SDMT: Correct responses"
   unit_n: "patient"
   unit_time: "repetition"
   min_repetitions: 5
@@ -89,15 +89,16 @@ if (params$test_code == "ips_over_ips_baseline") {
   
   data = as.data.frame(pivot_wider(data, id_cols=c("floodlightOpenId", "participantIsControl", "participantSex", "participantBirthYear", "testStartedAt"), names_from="testCode", values_from="testResultMetricValue"))
   
+  colnames(data)[7] = "baseline"
   
-  print(ggplot(data, aes(ips, ips/ips_baseline, color=ips_baseline)) +
+  print(ggplot(data, aes(ips, ips/baseline, color=baseline)) +
     geom_point(alpha=0.2) +
     geom_smooth(method="lm", se=T, color="black") +
-    ggtitle(paste0("n=", nrow(data), " (", sum(data$ips/data$ips_baseline > 8), " outliers not shown), Pearson r=",round(cor(data$ips, data$ips/data$ips_baseline), 2), ", Spearman ρ=", round(cor(data$ips, data$ips/data$ips_baseline, method="spearman"), 2))) +
-    ylim(0,8))
+    ggtitle(paste0("n=", nrow(data), " (", sum(data$ips/data$baseline > 8), " outliers not shown), Pearson R=",round(cor(data$ips, data$ips/data$baseline), 2), ", Spearman ρ=", round(cor(data$ips, data$ips/data$baseline, method="spearman"), 2))) +
+    ylim(0,8) + xlab("e-SDMT") + ylab("e-SDMT corrected"))
   
-  data$ips = data$ips / data$ips_baseline # becomes value
-  data$ips_baseline = NA # becomes hand_used
+  data$ips = data$ips / data$baseline # becomes "value" later
+  data$baseline = NA # becomes "hand_used" later
 # For "Finger Pinching" and "Draw A Shape" hand_used has to be determined
 } else if (params$test_code %in% c("pinching", "draw_a_shape")) {
   data = data[data$testMetricCode %in% c(params$test_metric_code, "hand_used"),]
@@ -127,11 +128,11 @@ data$id = paste0(data$id, "_hand", data$hand_used)
 
 ```{r}
 round = function(x, digits=0) sprintf(paste0("%.", digits, "f"), x)
-
+ 
 signif_p = function(x, digits=1) {
   x = signif(x, digits)
-  if (x < 0.0001) return("< 0.0001")
-  else return(paste0("= ", x))
+  if (x < 0.001) return("< .001")
+  return(paste0("= ", sub("0\\.", ".", as.character(x))))
 }
 
 no_x = theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
@@ -182,10 +183,10 @@ Inclusion criteria: at least `r params$min_weeks` weeks between first and last r
 
 ```{r}
 t(data.frame(
-  n_patients = paste0(length(unique(data$id_original)), " / ", n_patients_orig, " (", round(length(unique(data$id_original))/n_patients_orig*100,1), "%)"),
-  n_hands = paste0(length(unique(data$id)), " / ", n_hands_orig, " (", round(length(unique(data$id))/n_hands_orig*100,1), "%)"),
-  n_tests = paste0(nrow(data), " / ", n_orig, " (", round(nrow(data)/n_orig*100,1), "%)"),
-  percent_female = paste0(round(prop.table(table(participants_summary$sex == "female"))[[2]]*100, 1)),
+  n_patients = paste0(length(unique(data$id_original)), "/", n_patients_orig, " (", round(length(unique(data$id_original))/n_patients_orig*100,1), "%)"),
+  n_hands = paste0(length(unique(data$id)), "/", n_hands_orig, " (", round(length(unique(data$id))/n_hands_orig*100,1), "%)"),
+  n_tests = paste0(nrow(data), "/", n_orig, " (", round(nrow(data)/n_orig*100,1), "%)"),
+  percent_female = paste0(sum(participants_summary$sex == "female"), "/", nrow(participants_summary), " (", round(prop.table(table(participants_summary$sex == "female"))[[2]]*100, 1), "%)"),
   age = paste0(round(median(participants_summary$mean_age,na.rm=T),1), " (", round(quantile(participants_summary$mean_age, 0.25, na.rm=T),1), "-", round(quantile(participants_summary$mean_age, 0.75, na.rm=T),1), ", range ", round(min(participants_summary$mean_age, na.rm=T),1), "-", round(max(participants_summary$mean_age, na.rm=T),1), ")"),
   repetitions = paste0(median(participants_summary$repetition), " repetitions (IQR ", quantile(participants_summary$repetition, 0.25), "-", quantile(participants_summary$repetition, 0.75), ", range ", min(participants_summary$repetition), "-", max(participants_summary$repetition), ")"),
   median_intertest_interval = paste0(round(median(participants_summary$median_intertest_interval),1), " days (IQR ", round(quantile(participants_summary$median_intertest_interval, 0.25),1), "-", round(quantile(participants_summary$median_intertest_interval, 0.75),1), ", range ", round(min(participants_summary$median_intertest_interval),1), "-", round(max(participants_summary$median_intertest_interval),1), ")"),
@@ -222,20 +223,20 @@ print("Average observed improvement (last-fifth) / first: ")
 improvement_fifth_last = paste0(round(test_fifth_last$estimate/mean(participants_summary$first)*100, 1), "% (", round(test_fifth_last$conf[1]/mean(participants_summary$first)*100, 1), "-", round(test_fifth_last$conf[2]/mean(participants_summary$first)*100, 1), ")")
 improvement_fifth_last
 
-mod_first_last = lm(diff_first_last ~ I(mean_age/10) + I(first/10) + log10(unit_time), participants_summary)
-confint(mod_first_last)
-summ_first_last = summary(mod_first_last)
-summ_first_last
-
-mod_first_fifth = lm(diff_first_fifth ~ I(mean_age/10) + I(first/10) + log10(unit_time), participants_summary)
-confint(mod_first_fifth)
-summ_first_fifth = summary(mod_first_fifth)
-summ_first_fifth
+# mod_first_last = lm(diff_first_last ~ I(mean_age/10) + I(first/10) + log10(unit_time), participants_summary)
+# confint(mod_first_last)
+# summ_first_last = summary(mod_first_last)
+# summ_first_last
+# 
+# mod_first_fifth = lm(diff_first_fifth ~ I(mean_age/10) + I(first/10) + log10(unit_time), participants_summary)
+# confint(mod_first_fifth)
+# summ_first_fifth = summary(mod_first_fifth)
+# summ_first_fifth
 
 mod_fifth_last = lm(diff_fifth_last ~ I(mean_age/10) + I(first/10) + I(fifth/10) + log10(unit_time), participants_summary)
-confint(mod_fifth_last)
 summ_fifth_last = summary(mod_fifth_last)
 summ_fifth_last
+confint(mod_fifth_last)
 ```
 
 #### Difference plot
@@ -243,11 +244,11 @@ summ_fifth_last
 ```{r, fig.width=9, fig.height=3}
 #lab.y = 1.1*max(mean(participants_summary$fifth), mean(participants_summary$last))
 
-p1 = ggbarplot(data.frame(Timepoint=rep(c("First","Fifth","Last"), each=nrow(participants_summary)), value=c(participants_summary$first,participants_summary$fifth,participants_summary$last)), "Timepoint", "value", add="mean_se", label=T, lab.nb.digits=1, lab.vjust=1.9, ylab=params$unit) + xlab("Trial") #+ stat_pvalue_manual(data.frame(group1="Fifth", group2="Last", label=paste0("p ", signif_p(test_fifth_last$p.value)), y.position=lab.y), label="label") + scale_y_continuous(expand=expansion(mult=c(0,0.1))) #+ ggtitle(paste0("ANOVA p=", signif(summary(aov(value~name,pivot_longer(participants_summary[c("first", "fifth", "last")], c("first", "fifth", "last"))))[[1]]["Pr(>F)"][1,],1)))
+p1 = ggbarplot(data.frame(Timepoint=rep(c("First","Fifth","Last"), each=nrow(participants_summary)), value=c(participants_summary$first,participants_summary$fifth,participants_summary$last)), "Timepoint", "value", add="mean_se", label=T, lab.nb.digits=1, lab.vjust=1.9, ylab=params$unit) + xlab("trial") #+ stat_pvalue_manual(data.frame(group1="Fifth", group2="Last", label=paste0("p ", signif_p(test_fifth_last$p.value)), y.position=lab.y), label="label") + scale_y_continuous(expand=expansion(mult=c(0,0.1))) #+ ggtitle(paste0("ANOVA p=", signif(summary(aov(value~name,pivot_longer(participants_summary[c("first", "fifth", "last")], c("first", "fifth", "last"))))[[1]]["Pr(>F)"][1,],1)))
 
 #p2 = plot_model(summ_first_last, show.values=T, show.intercept=F, colors=linecolor, title=paste0("Difference from First to Last Score, R²=", round(summ_first_last$r.squared, 2)), axis.labels=rev(c("Intercept", "Age (per 10 years)", "First score (per 10)", paste0(unit_time_xlab, " (log 10)"))), value.offset=0.3, show.p=F) + ylab("β estimates") + ylab(NULL) + geom_hline(yintercept=0, alpha=0.5)
 
-p3 = plot_model(summ_fifth_last, show.values=T, show.intercept=F, colors=linecolor, title=paste0("Difference from Fifth to Last Score, R²=", round(summ_fifth_last$r.squared, 2)), axis.labels=rev(c("Age (per 10 years)", "First score (per 10)", "Fifth score (per 10)", paste0(unit_time_xlab, " (log 10)"))), value.offset=0.3, show.p=F) + ylab("β estimates") + geom_hline(yintercept=0, alpha=0.5)
+p3 = plot_model(summ_fifth_last, show.values=T, show.intercept=F, colors=linecolor, title=paste0("Difference from fifth to last score, R²=", round(summ_fifth_last$r.squared, 2)), axis.labels=rev(c("Age (per 10 years)", "First score (per 10)", "Fifth score (per 10)", paste0(unit_time_xlab, " (log 10)"))), value.offset=0.3, show.p=F) + ylab("β estimates") + geom_hline(yintercept=0, alpha=0.5)
 
 #(p1 + (p2/p3)) + plot_layout(widths=c(2,5)) & theme_pubr(base_family="Serif")
 (p1 + p3) + plot_layout(widths=c(2,5)) & theme_pubr(base_family="Serif")
@@ -346,11 +347,11 @@ p = ggplot() + geom_line(aes(repetition, value, group=id), data_censored, alpha=
   scale_x_continuous(expand = expansion(mult = c(0, 0)), labels=function(breaks) breaks+1) + scale_y_continuous(limits=c(0, quantile(data$value, probs=0.975)), expand = expansion(mult = c(0, 0))) +
   xlab("Trial") + ylab(params$unit) +
   geom_abline(intercept=coef(QR)[1,], slope=coef(QR)[2,], color=linecolor) +
-  geom_text(data=data.frame(intercept=coef(QR)[1,], label=paste0(percentiles*100, "th percentile: β = ", round(coef(QR)[2,],2), ", ", "p.adj ", sapply(p_vals,signif_p))),
-            mapping=aes(x=min(data_censored$repetition)+0.2,y=intercept, label=label), color=linecolor, hjust="left", vjust=1, family="Serif")
+  geom_richtext(data=data.frame(intercept=coef(QR)[1,], label=paste0(percentiles*100, "th percentile: β = ", round(coef(QR)[2,],2), ", ", "adjusted *P* ", sapply(p_vals,signif_p))),
+            mapping=aes(x=min(data_censored$repetition)+0.2,y=intercept, label=label), color=linecolor, hjust="left", vjust=1, family="Serif", fill = NA, label.color = NA, label.padding = grid::unit(rep(0, 4), "pt"))
 
 if (exists("ANOVA")) {
-  p + geom_text(aes(x=x,y=y,label=label), data.frame(x=0.7*params$min_repetitions, y=0, label=paste0("ANOVA p ", signif_p(ANOVA$table$pvalue, 1))), vjust=-1.5, family="Serif")
+  p + geom_richtext(aes(x=x,y=y,label=label), data.frame(x=0.7*params$min_repetitions, y=0, label=paste0("ANOVA *P* ", signif_p(ANOVA$table$pvalue, 1))), vjust=-1.5, family="Serif", fill = NA, label.color = NA, label.padding = grid::unit(rep(0, 4), "pt"))
 } else {
   p
 }
@@ -359,7 +360,7 @@ if (exists("ANOVA")) {
 ```{r}
 if (test_fifth_last$p.value > 0.05) {  
   knitr::knit_exit()
-}  
+}
 ```
 
 ### Learning curve: Model selection
@@ -410,6 +411,8 @@ remaining_participants = data.frame(x=remaining_participants_bins, text=sapply(r
 
 xmax = remaining_participants$x[which(remaining_participants$text<=20)[1]]
 
+if (xmax > 200) remaining_participants = remaining_participants[seq(1,36,by=2),]
+
 range_95p =quantile(data$value, probs=c(0.025,0.975))
 
 labeltext = paste0("Model RMSE (eDF):<br><span style='color:#0000ff'>····· Linear: ", RMSE[1], " (", eDF[1], ") </span><br><span style='color:#008b00'>- - - Quadratic: ", RMSE[2], " (", eDF[2], ") </span><br><span style='color:#000000'>—— Smoothing spline: ", RMSE[3], " (", eDF[3], ") </span>")
@@ -429,7 +432,7 @@ if (exists("REM_bounded")) p1 = p1 + stat_function(fun=equ_bounded, color=lineco
 p2 = ggplot(remaining_participants[remaining_participants$x<=xmax,]) +
   geom_text(aes(x=x,y="A",label=text), family="Serif") +
   theme_pubr(base_family="Serif") + no_y + xlab(unit_time_xlab) + ylab(paste0("Remaining \n ", params$unit_n, "s")) +
-  scale_x_continuous(breaks=seq(0,xmax,by=10))
+  scale_x_continuous(breaks=seq(0,xmax,by=ifelse(xmax > 200, 20, 10)))
 
 (p1 / p2) + plot_layout(heights=c(0.9,0.1))
 ```
@@ -446,7 +449,7 @@ if (exists("REM_bounded")) {
 ### Bounded growth model
 
 ```{r fig.width=8.2, fig.height=4}
-if (exists("REM_bounded")) {
+if (exists("REM_bounded")) { 
   xmax = remaining_participants$x[which(remaining_participants$text<20)[1]]
   
   equ_diff_REM_bounded = function(t) exp(log_alpha)*(yf-y0)*exp(exp(log_alpha)*-t)
